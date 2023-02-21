@@ -155,7 +155,30 @@ namespace TestProjectSQL.Repositories
 
             }
         }
-        public DataTable CustomersHighestSpenders()
+        public IEnumerable<CustomerSpender> CustomersHighestSpenders() {
+            using var conn = new SqlConnection(ConnectionString);
+            conn.Open();
+            var sql = "select c.FirstName ,i.Total from Customer as c INNER JOIN Invoice as i on c.CustomerId = i.CustomerId group by i.Total, c.FirstName order by i.total DESC";
+
+            SqlCommand cmd = new SqlCommand(sql, conn);
+
+            using SqlDataReader reader = cmd.ExecuteReader();
+
+            while (reader.Read())
+            {
+                yield return new CustomerSpender(
+                    reader.GetString(0),
+                    reader.GetDecimal(1)
+                    );
+
+            }
+        }
+
+
+
+
+
+       /* public DataTable CustomersHighestSpenders()
         {
             DataTable dataTable = new DataTable();
             try
@@ -175,7 +198,7 @@ namespace TestProjectSQL.Repositories
                 Console.WriteLine(ex.Message);
             }
             return dataTable;
-        }
+        }*/
 
 
     }

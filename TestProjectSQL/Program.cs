@@ -11,11 +11,11 @@ var chinookRepo = new CustomerRepository { ConnectionString = GetConnectionStrin
 var newCustomer = new Customer(default,"tttest", "Test", "Test", "Test", "Test", "Test");
 
 
-var customrs = chinookRepo.NumberOfCustomerInCountry();
+var customrs = chinookRepo.CustomersHighestSpenders();
 
 foreach (var customer in customrs)
 {
-    Console.WriteLine(customer.country + " : " + customer.count);
+    Console.WriteLine(customer.firstName + " : " + customer.total);
 }
 /*DataTable dt = new DataTable();*/
 
