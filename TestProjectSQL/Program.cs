@@ -3,7 +3,7 @@ using System.Data;
 using TestProjectSQL.Models;
 using TestProjectSQL.Repositories;
 
-var chinookRepo = new ChinookRepository { ConnectionString = GetConnectionString() };
+var chinookRepo = new CustomerRepository { ConnectionString = GetConnectionString() };
 
 
 /*chinookRepo.Add("Experis");*/
@@ -11,11 +11,11 @@ var chinookRepo = new ChinookRepository { ConnectionString = GetConnectionString
 var newCustomer = new Customer(default,"tttest", "Test", "Test", "Test", "Test", "Test");
 
 
-var customrs = chinookRepo.GetByName("Leoni");
+var customrs = chinookRepo.NumberOfCustomerInCountry();
 
 foreach (var customer in customrs)
 {
-    Console.WriteLine(customer.FirstName);
+    Console.WriteLine(customer.country + " : " + customer.count);
 }
 /*DataTable dt = new DataTable();*/
 

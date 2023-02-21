@@ -9,7 +9,7 @@ using TestProjectSQL.Models;
 
 namespace TestProjectSQL.Repositories
 {
-    public class ChinookRepository
+    public class CustomerRepository
     {
         public string ConnectionString { get; set; } = string.Empty;
 
@@ -136,35 +136,25 @@ namespace TestProjectSQL.Repositories
             }
             return isInsert;           
         }
-
-
-        public DataTable NumberOfCustomerInCountry()
+        public IEnumerable<CustomerCountry> NumberOfCustomerInCountry()
         {
-            DataTable dataTable = new DataTable();
-            try
-            { 
-                using var conn = new SqlConnection(ConnectionString);
-                conn.Open();
-                var sql = "Select c.Country, Count(*) from Customer as c group by c.Country order by count(C.Country) DESC";
+            using var conn = new SqlConnection(ConnectionString);
+            conn.Open();
+            var sql = "Select c.Country, Count(*) from Customer as c group by c.Country order by count(C.Country) DESC";
 
-                SqlCommand cmd = new SqlCommand(sql, conn);
+            SqlCommand cmd = new SqlCommand(sql, conn);
 
-                SqlDataAdapter dataAdapter = new SqlDataAdapter();
-                dataAdapter.SelectCommand= cmd;
-                dataAdapter.Fill(dataTable);
-                conn.Close();
-                dataAdapter.Dispose();
+            using SqlDataReader reader = cmd.ExecuteReader();
 
-               
-            }catch(Exception ex)
+            while (reader.Read())
             {
-                Console.WriteLine(ex.Message);
+                yield return new CustomerCountry(
+                    reader.GetString(0),
+                    reader.GetInt32(1)
+                    );
+
             }
-
-            return dataTable;
         }
-
-
         public DataTable CustomersHighestSpenders()
         {
             DataTable dataTable = new DataTable();
