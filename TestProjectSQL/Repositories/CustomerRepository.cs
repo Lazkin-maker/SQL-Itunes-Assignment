@@ -13,11 +13,11 @@ namespace TestProjectSQL.Repositories
     {
         public string ConnectionString { get; set; } = string.Empty;
 
-        public IEnumerable<Customer> CustomerGetAll()
+        public IEnumerable<Customer> GetAll()
         {
             using var connection = new SqlConnection(ConnectionString);
             connection.Open();
-            var sql = "SELECT CustomerId, FirstName, LastName, Country, PostalCode, Phone, Email FROM Customer";
+            var sql = "SELECT CustomerId, FirstName, LastName, Country, ISNULL(PostalCode, 'null'), ISNULL(Phone, 'null'), Email FROM Customer";
             using var command = new SqlCommand(sql, connection);
             using SqlDataReader reader= command.ExecuteReader();
 
@@ -39,7 +39,7 @@ namespace TestProjectSQL.Repositories
         {
             using var connection = new SqlConnection(ConnectionString);
             connection.Open();
-            var sql = "SELECT CustomerId, FirstName, LastName, Country, PostalCode, Phone, Email FROM Customer WHERE CustomerId = @ID";
+            var sql = "SELECT CustomerId, FirstName, LastName, Country, ISNULL(PostalCode, 'null'), ISNULL(Phone, 'null'), Email FROM Customer WHERE CustomerId = @ID";
             using var command = new SqlCommand(sql, connection);
             command.Parameters.AddWithValue("@ID", id);
             using SqlDataReader reader = command.ExecuteReader();
@@ -63,7 +63,7 @@ namespace TestProjectSQL.Repositories
            
                 using var connection = new SqlConnection(ConnectionString);
                 connection.Open();
-                var sql = "SELECT CustomerId, FirstName, LastName, Country, PostalCode, Phone, Email FROM Customer WHERE FirstName LIKE '%' + @firstname+ '%'";
+                var sql = "SELECT CustomerId, FirstName, LastName, Country,  ISNULL(PostalCode, 'null'), ISNULL(Phone, 'null'), Email FROM Customer WHERE FirstName LIKE '%' + @firstname+ '%'";
                 using var command = new SqlCommand(sql, connection);
                 command.Parameters.AddWithValue("@firstname", name);
                 using SqlDataReader reader = command.ExecuteReader();
@@ -79,18 +79,17 @@ namespace TestProjectSQL.Repositories
                             reader.GetString(5),
                             reader.GetString(6)
                         );
-                }
-            
+                }       
         }
-
-
-        public IEnumerable<Customer> GetPageOfCustomer(int rows)
+        public IEnumerable<Customer> GetPageOfCustomer(int limit, int offset)
         {
             using var connection = new SqlConnection(ConnectionString);
             connection.Open();
-            var sql = "SELECT CustomerId, FirstName, LastName, Country, PostalCode, Phone, Email FROM Customer ORDER BY CustomerId OFFSET 0 ROWS FETCH FIRST @ROWS ROWS ONLY";
+            var sql = "SELECT CustomerId, FirstName, LastName, Country, PostalCode, Phone, Email FROM Customer ORDER BY CustomerId OFFSET @Offset ROWS FETCH FIRST @Rows ROWS ONLY";
             using var command = new SqlCommand(sql, connection);
-            command.Parameters.AddWithValue("@ROWS", rows);
+            command.Parameters.AddWithValue("@Rows", limit);
+            command.Parameters.AddWithValue("@Offset", offset);
+
 
             using SqlDataReader reader = command.ExecuteReader();
 
@@ -108,7 +107,7 @@ namespace TestProjectSQL.Repositories
             }
         }
 
-        public bool InsertCustomer(Customer customer)
+        public bool Add(Customer customer)
         {
             bool isInsert = false;
 
@@ -124,9 +123,8 @@ namespace TestProjectSQL.Repositories
             command.Parameters.AddWithValue("@PHONE", customer.Phone);
             command.Parameters.AddWithValue("@EMAIL", customer.Email);
 
-            int cmd = command.ExecuteNonQuery();
-            
-            if(cmd == 0)
+            int cmd = command.ExecuteNonQuery();          
+            if(cmd == 1)
             {
                 isInsert = false;
             }
@@ -136,6 +134,37 @@ namespace TestProjectSQL.Repositories
             }
             return isInsert;           
         }
+        public bool Update(Customer customer)
+        {
+            bool isUpdate = false;
+            using var conn = new SqlConnection(ConnectionString);
+            conn.Open();
+
+            var sql = "update Customer set FirstName =@firstname, LastName =@lastname, Country =@country, PostalCode =@postalcode, Phone =@phone, Email =@email where CustomerId = @ID";
+            using var command = new SqlCommand(sql, conn);
+            command.Parameters.AddWithValue("@firstname", customer.FirstName);
+            command.Parameters.AddWithValue("@lastname", customer.LastName);
+            command.Parameters.AddWithValue("@country", customer.Country);
+            command.Parameters.AddWithValue("@postalcode", customer.PostalCode);
+            command.Parameters.AddWithValue("@phone", customer.Phone);
+            command.Parameters.AddWithValue("@email", customer.Email);
+            command.Parameters.AddWithValue("@ID", customer.CustomerId);
+
+            int cmd = command.ExecuteNonQuery();
+
+            if (cmd == 0)
+            {
+                isUpdate = false;
+            }
+            else
+            {
+                isUpdate = true;
+            }
+            return isUpdate;
+        }
+
+
+
         public IEnumerable<CustomerCountry> NumberOfCustomerInCountry()
         {
             using var conn = new SqlConnection(ConnectionString);
@@ -152,7 +181,6 @@ namespace TestProjectSQL.Repositories
                     reader.GetString(0),
                     reader.GetInt32(1)
                     );
-
             }
         }
         public IEnumerable<CustomerSpender> CustomersHighestSpenders() {
@@ -170,35 +198,28 @@ namespace TestProjectSQL.Repositories
                     reader.GetString(0),
                     reader.GetDecimal(1)
                     );
-
             }
         }
 
-
-
-
-
-       /* public DataTable CustomersHighestSpenders()
+        public IEnumerable<CustomerGenre> CustomerPopularGenre(string firstname)
         {
-            DataTable dataTable = new DataTable();
-            try
-            {
-                using var conn = new SqlConnection(ConnectionString);
-                conn.Open();
-                var sql = "select c.FirstName ,i.Total from Customer as c INNER JOIN Invoice as i on c.CustomerId = i.CustomerId group by i.Total, c.FirstName order by i.total DESC";
-                SqlCommand cmd = new SqlCommand(sql, conn);
+            using var conn = new SqlConnection(ConnectionString);
+            conn.Open();
+            var sql = "SELECT c.FirstName, g.Name, COUNT(*) as Counts FROM Genre AS g INNER JOIN Track AS t ON t.GenreId = g.GenreId INNER JOIN InvoiceLine AS il ON il.TrackId = t.TrackId INNER JOIN Invoice AS i ON i.InvoiceId = il.InvoiceId INNER JOIN Customer AS c ON c.CustomerId = i.CustomerId WHERE c.FirstName = @firstname GROUP BY c.FirstName, g.Name HAVING COUNT(*) = ( SELECT MAX(cnt)  FROM ( SELECT COUNT(*) AS cnt  FROM Genre AS g INNER JOIN Track AS t ON t.GenreId = g.GenreId INNER JOIN InvoiceLine AS il ON il.TrackId = t.TrackId INNER JOIN Invoice AS i ON i.InvoiceId = il.InvoiceId INNER JOIN Customer AS c ON c.CustomerId = i.CustomerId WHERE c.FirstName = @firstname GROUP BY c.FirstName, g.Name ) AS counts)";
+            
+            SqlCommand cmd = new SqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@firstname", firstname);
+            using SqlDataReader reader = cmd.ExecuteReader();
 
-                SqlDataAdapter dataAdapter = new SqlDataAdapter();
-                dataAdapter.SelectCommand= cmd;
-                dataAdapter.Fill(dataTable);
-                conn.Close(); 
-                dataAdapter.Dispose();
-            }catch(Exception ex)
+            while (reader.Read())
             {
-                Console.WriteLine(ex.Message);
+                yield return new CustomerGenre(
+                    reader.GetString(0),
+                    reader.GetString(1),
+                    reader.GetInt32(2)
+                    );
             }
-            return dataTable;
-        }*/
+        }
 
 
     }

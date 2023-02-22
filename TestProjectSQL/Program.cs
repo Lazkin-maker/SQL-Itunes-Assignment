@@ -6,34 +6,86 @@ using TestProjectSQL.Repositories;
 var chinookRepo = new CustomerRepository { ConnectionString = GetConnectionString() };
 
 
-/*chinookRepo.Add("Experis");*/
+// Task 1
+/*var customers = chinookRepo.GetAll();
 
-var newCustomer = new Customer(default,"tttest", "Test", "Test", "Test", "Test", "Test");
+foreach(var customer in customers)
+{
+    Console.WriteLine(customer);
+}*/
+
+// Task 2
+/*var customerById = chinookRepo.GetById(34);
+foreach(var customer in customerById)
+{
+    Console.WriteLine(customer);
+}
+*/
+
+//Task 3
+/*var customerByName = chinookRepo.GetByName("João");
+foreach (var customer in customerByName)
+{
+    Console.WriteLine(customer);
+}*/
 
 
-var customrs = chinookRepo.CustomersHighestSpenders();
+// Task 4
+/*var pages = chinookRepo.GetPageOfCustomer(5, 10);
+
+foreach (var page in pages)
+{
+    Console.WriteLine(page);
+}*/
+
+
+// Task 5
+/*var newCustomer = new Customer(default, "tttest", "Test", "Test", "Test", "Test", "Test");
+bool checkCustomerInsert = chinookRepo.Add(newCustomer);
+if (!checkCustomerInsert)
+{
+    throw new Exception(nameof(checkCustomerInsert) + ": Returns fail!");
+}*/
+
+// Task 6
+/*var UpdateCustomer = new Customer(64, "Updated", "Updated", "Updated", "Updated", "Updated", "Updated");
+bool checkIfUpdated = chinookRepo.Update(UpdateCustomer);
+if (!checkIfUpdated)
+{
+    throw new Exception(nameof(UpdateCustomer) + "Returns fail!");
+}*/
+
+// Task 7
+/*var customerInCountry = chinookRepo.NumberOfCustomerInCountry();
+foreach (var obj in customerInCountry)
+{
+    Console.WriteLine(obj.country + ": " + obj.count);
+}
+*/
+
+// Task 8
+/*var customrs = chinookRepo.CustomersHighestSpenders();
 
 foreach (var customer in customrs)
 {
     Console.WriteLine(customer.firstName + " : " + customer.total);
-}
-/*DataTable dt = new DataTable();*/
-
-/*dt = chinookRepo.NumberOfCustomerInCountry();
-
-
-foreach (DataRow row in dt.Rows)
-{
-    Console.WriteLine(row[0] + " : " +row[1]);
 }*/
 
-/*dt = chinookRepo.CustomersHighestSpenders();
 
-foreach(DataRow row in dt.Rows)
+// Task 9
+var popularGenre = chinookRepo.CustomerPopularGenre("Roberto");
+
+foreach(var record in popularGenre)
 {
-   Console.WriteLine(row[0] + " : " + row[1]);
+    Console.WriteLine(record);
 }
-*/
+
+
+
+
+
+
+
 
 static string GetConnectionString()
 {
