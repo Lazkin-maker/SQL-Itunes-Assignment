@@ -17,9 +17,9 @@ foreach (var customer in customers)
 // Task 2
 /*var customer = chinookRepo.GetById(34);
 
-    Console.WriteLine(customer);
-
+Console.WriteLine(customer);
 */
+
 
 //Task 3
 /*var customerByName = chinookRepo.GetByName("João");
@@ -35,8 +35,8 @@ foreach (var customer in customerByName)
 foreach (var page in pages)
 {
     Console.WriteLine(page);
-}
-*/
+}*/
+
 
 // Task 5
 /*var newCustomer = new Customer(default, "tttest", "Test", "Test", "Test", "Test", "Test");

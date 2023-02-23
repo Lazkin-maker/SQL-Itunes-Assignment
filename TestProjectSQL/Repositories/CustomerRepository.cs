@@ -17,7 +17,7 @@ namespace TestProjectSQL.Repositories
         {
             using var connection = new SqlConnection(ConnectionString);
             connection.Open();
-            var sql = "SELECT CustomerId, FirstName, LastName, Country, ISNULL(PostalCode, 'null'), ISNULL(Phone, 'null'), Email FROM Customer";
+            var sql = "SELECT CustomerId, FirstName, LastName, Country, PostalCode,Phone, Email FROM Customer";
             using var command = new SqlCommand(sql, connection);
             using SqlDataReader reader= command.ExecuteReader();
 
@@ -27,9 +27,9 @@ namespace TestProjectSQL.Repositories
                         reader.GetInt32(0),
                         reader.GetString(1),
                         reader.GetString(2),
-                        reader.GetString(3),
-                        reader.GetString(4),
-                        reader.GetString(5),
+                        reader.IsDBNull(3) ? null : reader.GetString(3),
+                        reader.IsDBNull(4) ? null : reader.GetString(4),
+                        reader.IsDBNull(5) ? null : reader.GetString(5),
                         reader.GetString(6)
                     );
             }
@@ -39,7 +39,7 @@ namespace TestProjectSQL.Repositories
         {
             using var connection = new SqlConnection(ConnectionString);
             connection.Open();
-            var sql = "SELECT CustomerId, FirstName, LastName, Country, ISNULL(PostalCode, 'null'), ISNULL(Phone, 'null'), Email FROM Customer WHERE CustomerId = @ID";
+            var sql = "SELECT CustomerId, FirstName, LastName, Country,PostalCode, Phone, Email FROM Customer WHERE CustomerId = @ID";
             using var command = new SqlCommand(sql, connection);
             command.Parameters.AddWithValue("@ID", id);
             using SqlDataReader reader = command.ExecuteReader();
@@ -52,9 +52,9 @@ namespace TestProjectSQL.Repositories
                         reader.GetInt32(0),
                         reader.GetString(1),
                         reader.GetString(2),
-                        reader.GetString(3),
-                        reader.GetString(4),
-                        reader.GetString(5),
+                        reader.IsDBNull(3) ? null : reader.GetString(3),
+                        reader.IsDBNull(4) ? null : reader.GetString(4),
+                        reader.IsDBNull(5) ? null : reader.GetString(5),
                         reader.GetString(6)
                     );
             }
@@ -67,7 +67,7 @@ namespace TestProjectSQL.Repositories
            
                 using var connection = new SqlConnection(ConnectionString);
                 connection.Open();
-                var sql = "SELECT CustomerId, FirstName, LastName, Country,  ISNULL(PostalCode, 'null'), ISNULL(Phone, 'null'), Email FROM Customer WHERE FirstName LIKE '%' + @firstname+ '%'";
+                var sql = "SELECT CustomerId, FirstName, LastName, Country, PostalCode, Phone, Email FROM Customer WHERE FirstName LIKE '%' + @firstname+ '%'";
                 using var command = new SqlCommand(sql, connection);
                 command.Parameters.AddWithValue("@firstname", name);
                 using SqlDataReader reader = command.ExecuteReader();
@@ -78,9 +78,9 @@ namespace TestProjectSQL.Repositories
                             reader.GetInt32(0),
                             reader.GetString(1),
                             reader.GetString(2),
-                            reader.GetString(3),
-                            reader.GetString(4),
-                            reader.GetString(5),
+                            reader.IsDBNull(3) ? null : reader.GetString(3),
+                            reader.IsDBNull(4) ? null : reader.GetString(4),
+                            reader.IsDBNull(5) ? null : reader.GetString(5),
                             reader.GetString(6)
                         );
                 }  
@@ -104,9 +104,9 @@ namespace TestProjectSQL.Repositories
                         reader.GetInt32(0),
                         reader.GetString(1),
                         reader.GetString(2),
-                        reader.GetString(3),
-                        reader.GetString(4),
-                        reader.GetString(5),
+                        reader.IsDBNull(3) ? null : reader.GetString(3),
+                        reader.IsDBNull(4) ? null : reader.GetString(4),
+                        reader.IsDBNull(5) ? null : reader.GetString(5),
                         reader.GetString(6)
                     );
             }

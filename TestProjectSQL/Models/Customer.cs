@@ -7,6 +7,6 @@ using System.Threading.Tasks;
 namespace TestProjectSQL.Models
 {
     public readonly record struct Customer(int CustomerId, string FirstName, string LastName 
-       , string Country, string PostalCode,string Phone , string Email );
+       , string? Country, string? PostalCode,string? Phone , string Email );
     
 }
