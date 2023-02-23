@@ -9,17 +9,16 @@ var chinookRepo = new CustomerRepository { ConnectionString = GetConnectionStrin
 // Task 1
 /*var customers = chinookRepo.GetAll();
 
-foreach(var customer in customers)
+foreach (var customer in customers)
 {
     Console.WriteLine(customer);
 }*/
 
 // Task 2
-/*var customerById = chinookRepo.GetById(34);
-foreach(var customer in customerById)
-{
+/*var customer = chinookRepo.GetById(34);
+
     Console.WriteLine(customer);
-}
+
 */
 
 //Task 3
@@ -36,32 +35,26 @@ foreach (var customer in customerByName)
 foreach (var page in pages)
 {
     Console.WriteLine(page);
-}*/
-
+}
+*/
 
 // Task 5
 /*var newCustomer = new Customer(default, "tttest", "Test", "Test", "Test", "Test", "Test");
-bool checkCustomerInsert = chinookRepo.Add(newCustomer);
-if (!checkCustomerInsert)
-{
-    throw new Exception(nameof(checkCustomerInsert) + ": Returns fail!");
-}*/
+chinookRepo.Add(newCustomer);*/
+
 
 // Task 6
 /*var UpdateCustomer = new Customer(64, "Updated", "Updated", "Updated", "Updated", "Updated", "Updated");
-bool checkIfUpdated = chinookRepo.Update(UpdateCustomer);
-if (!checkIfUpdated)
-{
-    throw new Exception(nameof(UpdateCustomer) + "Returns fail!");
-}*/
+chinookRepo.Update(UpdateCustomer);*/
+
 
 // Task 7
 /*var customerInCountry = chinookRepo.NumberOfCustomerInCountry();
 foreach (var obj in customerInCountry)
 {
     Console.WriteLine(obj.country + ": " + obj.count);
-}
-*/
+}*/
+
 
 // Task 8
 /*var customrs = chinookRepo.CustomersHighestSpenders();
@@ -73,18 +66,12 @@ foreach (var customer in customrs)
 
 
 // Task 9
-var popularGenre = chinookRepo.CustomerPopularGenre("Roberto");
+var popularGenre = chinookRepo.CustomerPopularGenre(12);
 
 foreach(var record in popularGenre)
 {
     Console.WriteLine(record);
 }
-
-
-
-
-
-
 
 
 static string GetConnectionString()

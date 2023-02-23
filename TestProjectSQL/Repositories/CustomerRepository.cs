@@ -9,7 +9,7 @@ using TestProjectSQL.Models;
 
 namespace TestProjectSQL.Repositories
 {
-    public class CustomerRepository
+    public class CustomerRepository : ICustomerRepository
     {
         public string ConnectionString { get; set; } = string.Empty;
 
@@ -35,7 +35,7 @@ namespace TestProjectSQL.Repositories
             }
         }
 
-        public IEnumerable<Customer> GetById(int id)
+        public Customer GetById(int id)
         {
             using var connection = new SqlConnection(ConnectionString);
             connection.Open();
@@ -44,9 +44,11 @@ namespace TestProjectSQL.Repositories
             command.Parameters.AddWithValue("@ID", id);
             using SqlDataReader reader = command.ExecuteReader();
 
+            Customer person = new Customer();
+
             while (reader.Read())
             {
-                yield return new Customer(
+                      person =  new Customer(
                         reader.GetInt32(0),
                         reader.GetString(1),
                         reader.GetString(2),
@@ -56,6 +58,8 @@ namespace TestProjectSQL.Repositories
                         reader.GetString(6)
                     );
             }
+            connection.Close();
+            return person;
         }
 
         public IEnumerable<Customer> GetByName(string name)
@@ -79,7 +83,8 @@ namespace TestProjectSQL.Repositories
                             reader.GetString(5),
                             reader.GetString(6)
                         );
-                }       
+                }  
+                connection.Close();
         }
         public IEnumerable<Customer> GetPageOfCustomer(int limit, int offset)
         {
@@ -105,62 +110,54 @@ namespace TestProjectSQL.Repositories
                         reader.GetString(6)
                     );
             }
+            connection.Close();
         }
 
-        public bool Add(Customer customer)
+        public void Add(Customer obj)
         {
-            bool isInsert = false;
-
-            using var conn = new SqlConnection(ConnectionString);
-            conn.Open();
-            var sql = "INSERT INTO Customer (FirstName, LastName, Country, PostalCode, Phone, Email) VALUES(@FIRSTNAME, @LASTNAME, @COUNTRY, @POSTALCODE, @PHONE, @EMAIL)";
-
-            using var command = new SqlCommand(sql, conn);
-            command.Parameters.AddWithValue("@FIRSTNAME", customer.FirstName);
-            command.Parameters.AddWithValue("@LASTNAME", customer.LastName);
-            command.Parameters.AddWithValue("@COUNTRY", customer.Country);
-            command.Parameters.AddWithValue("@POSTALCODE", customer.PostalCode);
-            command.Parameters.AddWithValue("@PHONE", customer.Phone);
-            command.Parameters.AddWithValue("@EMAIL", customer.Email);
-
-            int cmd = command.ExecuteNonQuery();          
-            if(cmd == 1)
+            try
             {
-                isInsert = false;
+                using var connection = new SqlConnection(ConnectionString);
+                connection.Open();
+                var sql = " INSERT INTO Customer  ( FirstName ,LastName,Country,PostalCode,Phone,Email) VALUES(@FirstName, @LastName, @Country, @PostalCode, @Phone, @Email)";
+                using var command = new SqlCommand(sql, connection);
+                command.Parameters.AddWithValue("@FirstName", obj.FirstName);
+                command.Parameters.AddWithValue("@LastName", obj.LastName);
+                command.Parameters.AddWithValue("@Country", obj.Country);
+                command.Parameters.AddWithValue("@PostalCode", obj.PostalCode);
+                command.Parameters.AddWithValue("@Phone", obj.Phone);
+                command.Parameters.AddWithValue("@Email", obj.Email);
+                command.ExecuteNonQuery();
+                connection.Close();
             }
-            else
+            catch(Exception ex)
             {
-                isInsert = true;
-            }
-            return isInsert;           
+                Console.WriteLine(ex.Message);
+            } 
         }
-        public bool Update(Customer customer)
+        public void Update(Customer obj)
         {
-            bool isUpdate = false;
-            using var conn = new SqlConnection(ConnectionString);
-            conn.Open();
-
-            var sql = "update Customer set FirstName =@firstname, LastName =@lastname, Country =@country, PostalCode =@postalcode, Phone =@phone, Email =@email where CustomerId = @ID";
-            using var command = new SqlCommand(sql, conn);
-            command.Parameters.AddWithValue("@firstname", customer.FirstName);
-            command.Parameters.AddWithValue("@lastname", customer.LastName);
-            command.Parameters.AddWithValue("@country", customer.Country);
-            command.Parameters.AddWithValue("@postalcode", customer.PostalCode);
-            command.Parameters.AddWithValue("@phone", customer.Phone);
-            command.Parameters.AddWithValue("@email", customer.Email);
-            command.Parameters.AddWithValue("@ID", customer.CustomerId);
-
-            int cmd = command.ExecuteNonQuery();
-
-            if (cmd == 0)
+            try
             {
-                isUpdate = false;
+                using var connection = new SqlConnection(ConnectionString);
+                connection.Open();
+                var sql = "UPDATE Customer SET FirstName = @firstName, LastName = @lastName, Country = @country, PostalCode = @postalCode, Phone = @phone, Email = @email WHERE CustomerId = @ID";
+                using var command = new SqlCommand(sql, connection);
+                command.Parameters.AddWithValue("@firstName", obj.FirstName);
+                command.Parameters.AddWithValue("@lastName", obj.LastName);
+                command.Parameters.AddWithValue("@country", obj.Country);
+                command.Parameters.AddWithValue("@postalCode", obj.PostalCode);
+                command.Parameters.AddWithValue("@phone", obj.Phone);
+                command.Parameters.AddWithValue("@email", obj.Email);
+                command.Parameters.AddWithValue("@ID", obj.CustomerId);
+
+                command.ExecuteNonQuery();
+                connection.Close();
             }
-            else
+            catch(Exception ex)
             {
-                isUpdate = true;
+                Console.WriteLine(ex.Message);
             }
-            return isUpdate;
         }
 
 
@@ -201,22 +198,33 @@ namespace TestProjectSQL.Repositories
             }
         }
 
-        public IEnumerable<CustomerGenre> CustomerPopularGenre(string firstname)
+        public IEnumerable<CustomerGenre> CustomerPopularGenre(int id)
         {
             using var conn = new SqlConnection(ConnectionString);
             conn.Open();
-            var sql = "SELECT c.FirstName, g.Name, COUNT(*) as Counts FROM Genre AS g INNER JOIN Track AS t ON t.GenreId = g.GenreId INNER JOIN InvoiceLine AS il ON il.TrackId = t.TrackId INNER JOIN Invoice AS i ON i.InvoiceId = il.InvoiceId INNER JOIN Customer AS c ON c.CustomerId = i.CustomerId WHERE c.FirstName = @firstname GROUP BY c.FirstName, g.Name HAVING COUNT(*) = ( SELECT MAX(cnt)  FROM ( SELECT COUNT(*) AS cnt  FROM Genre AS g INNER JOIN Track AS t ON t.GenreId = g.GenreId INNER JOIN InvoiceLine AS il ON il.TrackId = t.TrackId INNER JOIN Invoice AS i ON i.InvoiceId = il.InvoiceId INNER JOIN Customer AS c ON c.CustomerId = i.CustomerId WHERE c.FirstName = @firstname GROUP BY c.FirstName, g.Name ) AS counts)";
-            
+            StringBuilder stringBuilder = new StringBuilder();
+            stringBuilder.Append("SELECT TOP (1) WITH TIES Customer.CustomerId, FirstName, LastName, Genre.NAME, COUNT(Genre.NAME) AS GenreNumber");
+            stringBuilder.Append(" FROM Customer  INNER JOIN Invoice  ON Customer.CustomerId = Invoice.CustomerId INNER JOIN InvoiceLine  ON Invoice.InvoiceId = InvoiceLine.InvoiceId");
+            stringBuilder.Append(" INNER JOIN Track  ON InvoiceLine.TrackId = Track.TrackId  INNER JOIN Genre  ON Track.GenreId = Genre.GenreId");
+            stringBuilder.Append(" WHERE [Customer].[CustomerId] = @ID");
+            stringBuilder.Append(" GROUP BY Customer.CustomerId, FirstName, LastName,Genre.NAME");
+            stringBuilder.AppendLine(" Order by GenreNumber DESC");
+            using var connection = new SqlConnection(ConnectionString);
+            connection.Open();
+            var sql = stringBuilder.ToString();
+
             SqlCommand cmd = new SqlCommand(sql, conn);
-            cmd.Parameters.AddWithValue("@firstname", firstname);
+            cmd.Parameters.AddWithValue("@ID", id);
             using SqlDataReader reader = cmd.ExecuteReader();
 
             while (reader.Read())
             {
                 yield return new CustomerGenre(
-                    reader.GetString(0),
+                    reader.GetInt32(0),
                     reader.GetString(1),
-                    reader.GetInt32(2)
+                    reader.GetString(2),
+                    reader.GetString(3),
+                    reader.GetInt32(4)
                     );
             }
         }
